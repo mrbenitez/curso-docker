@@ -1,0 +1,33 @@
+version: '3.3'
+services:
+  mysql-db:
+    image: mysql:8
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 15s
+      retries: 10
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - 3306:3306
+    expose: 
+      - 3306
+    restart: always
+  myapp:
+    build:
+      context: "."
+      dockerfile: "./Dockerfile"
+    restart: always
+    depends_on:
+      - mysql-db
+    links:
+      - mysql-db 
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 25s
+      timeout: 5s
+      retries: 5
